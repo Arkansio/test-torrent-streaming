@@ -1,0 +1,8 @@
+{
+  "name": "test-torrent-streaming",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/Arkansio/test-torrent-streaming.git",
+  "author": "Arkansio <38956983+Arkansio@users.noreply.github.com>",
+  "license": "MIT"
+}
