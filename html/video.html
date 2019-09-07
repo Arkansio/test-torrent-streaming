@@ -3,9 +3,18 @@
 <head></head>
 
 <body>
-    <video id="videoPlayer" controls>
-        <source src="http://localhost:3000/video" type="video/mp4">
+    <video id="videoPlayer" controls autoplay>
+        <source src="http://localhost:5050/video" type="video/mp4">
     </video>
+    <button id="toggleButton"></button>
+    <script>
+        const VP = document.getElementById('videoPlayer') // player
+        const VPToggle = document.getElementById('toggleButton') // button
+        VPToggle.addEventListener('click', function () {
+            if (VP.paused) VP.play()
+            else VP.pause()
+        })
+    </script>
 </body>
 
 </html>
