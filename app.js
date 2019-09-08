@@ -54,57 +54,52 @@ const streamTorrent = function(req, res, fl) {
 let engines = new Map();
 
 app.get('/video_two', (req, res) => {
-  console.log('request to video_two !')
-  if (engines.has('video_two')) {
-    console.log('destroy engine two');
-    engines.get('video_two').destroy();
-    engines.delete('video_two');
-  }
-  let mengine = torrentstream(process.env.magnet_two, options);
+  console.log('request to video !')
+  let engine = torrentstream(process.env.magnet_two, options);
   let fileSize;
 
+  engines.set('video', engine)
+
   let ourFile;
-  mengine.on('ready', function () {
-    console.log('ready video two');
-    mengine.files.forEach(function (file) {
+  engine.on('ready', function () {
+    console.log('ready');
+    engine.files.forEach(function (file) {
       console.log('filename:', file.name);
       console.log(`length ${file.length}`);
-      console.log(`file path: ${file.path}`)
-      file.select();
+      console.log(`path: ${file.path}`)
       if (file.name.includes('.mp4')) {
-        console.log('file name')
         path = `${__dirname}/tmp/files/${file.path}`;
         fileSize = file.length;
         ourFile = file;
-        console.log('this is an mp4', file.name)
         console.log('stream torrent')
         streamTorrent(req, res, file)
       }
     })
   })
-  mengine.on('download', function (piece) {
+
+  engine.on('download', function (piece) {
     console.log(`[video_two] pcs: ${piece}`)
   })
 
-  mengine.on('upload', function(pieces, offset, length) {
+  engine.on('upload', function(pieces, offset, length) {
     console.log(`[video_two] upload [pieces: ${pieces}| offset: ${offset}| length: ${length}]`);
   })
 
-  mengine.on('idle', function() {
+  engine.on('idle', function() {
     console.log(`[video_two] all files downloaded.`)
-    ourFile.select();
+    if (ourFile)
+      ourFile.select();
+    ourFile = undefined;
   })
 
-  engines.set('video_two', mengine)
+  res.on('close', () => {
+    console.log('request closed.. destroying');
+    engine.destroy();
+  })
 })
 
 app.get('/video', (req, res) => {
   console.log('request to video !')
-  if (engines.has('video')) {
-    console.log('destroy engine');
-    engines.get('video').destroy();
-    engines.delete('video');
-  }
   let engine = torrentstream(magnet, options);
   let fileSize;
 
@@ -137,7 +132,14 @@ app.get('/video', (req, res) => {
 
   engine.on('idle', function() {
     console.log(`[video_one] all files downloaded.`)
-    ourFile.select();
+    if (ourFile)
+      ourFile.select();
+    ourFile = undefined;
+  })
+
+  res.on('close', () => {
+    console.log('request closed.. destroying');
+    engine.destroy();
   })
 })
 
