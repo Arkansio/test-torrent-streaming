@@ -63,16 +63,19 @@ app.get('/video_two', (req, res) => {
   let mengine = torrentstream(process.env.magnet_two, options);
   let fileSize;
 
-
+  let ourFile;
   mengine.on('ready', function () {
     console.log('ready video two');
     mengine.files.forEach(function (file) {
       console.log('filename:', file.name);
       console.log(`length ${file.length}`);
       console.log(`file path: ${file.path}`)
+      file.select();
       if (file.name.includes('.mp4')) {
+        console.log('file name')
         path = `${__dirname}/tmp/files/${file.path}`;
         fileSize = file.length;
+        ourFile = file;
         console.log('this is an mp4', file.name)
         console.log('stream torrent')
         streamTorrent(req, res, file)
@@ -80,10 +83,16 @@ app.get('/video_two', (req, res) => {
     })
   })
   mengine.on('download', function (piece) {
-    const percent = Math.round(mengine.swarm.downloaded / fileSize * 100 * 100) / 100;
-    console.log('downloaded engine 2')
-    console.log(piece);
-    console.log(percent)
+    console.log(`[video_two] pcs: ${piece}`)
+  })
+
+  mengine.on('upload', function(pieces, offset, length) {
+    console.log(`[video_two] upload [pieces: ${pieces}| offset: ${offset}| length: ${length}]`);
+  })
+
+  mengine.on('idle', function() {
+    console.log(`[video_two] all files downloaded.`)
+    ourFile.select();
   })
 
   engines.set('video_two', mengine)
@@ -101,6 +110,7 @@ app.get('/video', (req, res) => {
 
   engines.set('video', engine)
 
+  let ourFile;
   engine.on('ready', function () {
     console.log('ready');
     engine.files.forEach(function (file) {
@@ -110,6 +120,7 @@ app.get('/video', (req, res) => {
       if (file.name.includes('.mp4')) {
         path = `${__dirname}/tmp/files/${file.path}`;
         fileSize = file.length;
+        ourFile = file;
         console.log('stream torrent')
         streamTorrent(req, res, file)
       }
@@ -117,10 +128,16 @@ app.get('/video', (req, res) => {
   })
 
   engine.on('download', function (piece) {
-    const percent = Math.round(engine.swarm.downloaded / fileSize * 100 * 100) / 100;
-    console.log('downloaded')
-    console.log(piece);
-    console.log(percent)
+    console.log(`[video_one] pcs: ${piece}`)
+  })
+
+  engine.on('upload', function(pieces, offset, length) {
+    console.log(`[video_one] upload [pieces: ${pieces}| offset: ${offset}| length: ${length}]`);
+  })
+
+  engine.on('idle', function() {
+    console.log(`[video_one] all files downloaded.`)
+    ourFile.select();
   })
 })
 
