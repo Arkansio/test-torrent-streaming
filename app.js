@@ -53,57 +53,18 @@ const streamTorrent = function(req, res, fl) {
 
 let engines = new Map();
 
-app.get('/video_two', (req, res) => {
-  console.log('request to video !')
-  let engine = torrentstream(process.env.magnet_two, options);
-  let fileSize;
-
-  engines.set('video', engine)
-
-  let ourFile;
-  engine.on('ready', function () {
-    console.log('ready');
-    engine.files.forEach(function (file) {
-      console.log('filename:', file.name);
-      console.log(`length ${file.length}`);
-      console.log(`path: ${file.path}`)
-      if (file.name.includes('.mp4')) {
-        path = `${__dirname}/tmp/files/${file.path}`;
-        fileSize = file.length;
-        ourFile = file;
-        console.log('stream torrent')
-        streamTorrent(req, res, file)
-      }
-    })
-  })
-
-  engine.on('download', function (piece) {
-    console.log(`[video_two] pcs: ${piece}`)
-  })
-
-  engine.on('upload', function(pieces, offset, length) {
-    console.log(`[video_two] upload [pieces: ${pieces}| offset: ${offset}| length: ${length}]`);
-  })
-
-  engine.on('idle', function() {
-    console.log(`[video_two] all files downloaded.`)
-    if (ourFile)
-      ourFile.select();
-    ourFile = undefined;
-  })
-
-  res.on('close', () => {
-    console.log('request closed.. destroying');
-    engine.destroy();
-  })
-})
-
 app.get('/video', (req, res) => {
   console.log('request to video !')
   let engine = torrentstream(magnet, options);
   let fileSize;
 
-  engines.set('video', engine)
+  if (engines.has('video')) {
+    console.log('destroy existing engine')
+    engines.get('video').destroy();
+    engines.delete('video')
+  }
+  
+
 
   let ourFile;
   engine.on('ready', function () {
@@ -132,14 +93,29 @@ app.get('/video', (req, res) => {
 
   engine.on('idle', function() {
     console.log(`[video_one] all files downloaded.`)
-    if (ourFile)
+    if (ourFile) {
+      engines.set('video', engine);
       ourFile.select();
+    }
+    else {
+      engines.delete('video')
+      engine.destroy();
+    }
+    
+    
     ourFile = undefined;
   })
 
   res.on('close', () => {
     console.log('request closed.. destroying');
-    engine.destroy();
+    
+    if (ourFile) {
+      engines.set('video', engine);
+      ourFile.select();
+      console.log('continue download')
+    }
+    ourFile = undefined;
+    
   })
 })
 

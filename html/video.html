@@ -3,11 +3,9 @@
 <head></head>
 
 <body>
-    <video id="videoPlayer" controls autoplay>
-        <source src="http://localhost:5050/video" type="video/mp4">
-    </video>
-    <video id="videoPlayer" controls autoplay>
-        <source src="http://localhost:5050/video_two" type="video/mp4">
+    <video id="videoPlayer" controls>
+            <source src="http://localhost:8080/stream?id=5d81230ea7032b274e1fa3a5" type="video/mp4">
+        <source src="http://localhost:8080/stream?id=5d81230ea7032b274e1fa3a5" type="video/webm">
     </video>
     <button id="toggleButton"></button>
     <script>
